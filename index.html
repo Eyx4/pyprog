@@ -3,18 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmallProg Interpreter</title>
+    <title>MyLang Interpreter</title>
 </head>
 <body>
-    <h1>SmallProg Interpreter</h1>
-    <textarea id="input" placeholder="Enter SmallProg program" style="height: 150px;"></textarea><br>
+    <h1>MyLang Interpreter</h1>
+    <textarea id="input" placeholder="Enter MyLang program" style="height: 150px;"></textarea><br>
     <button onclick="interpret()">Interpret</button>
-    <p>Hint (Only works on specific browsers): Spacebar is number 32</p>
     <div id="output"></div>
-    <br>
-    <button onclick="downloadFile()">Download as .spi</button>
-    <input type="file" id="fileInput" accept=".txt" onchange="loadFile(event)">
-  
+
     <script>
         function interpret() {
             var input = document.getElementById("input").value.trim().split("\n"); // Split input by lines
@@ -24,8 +20,30 @@
             var variables = {};
 
             // Process each line of input
-            input.forEach(function(line) {
-                var tokens = line.trim().split(" ");
+            for (var i = 0; i < input.length; i++) {
+                var line = input[i].trim();
+
+                // Ignore lines starting with //
+                if (line.startsWith("//")) {
+                    continue; // Skip this line
+                }
+
+                // Check for function block start using {
+                if (line.includes("{")) {
+                    // Parse function definition
+                    var functionName = line.substring(3, line.indexOf("{")).trim();
+                    output.push(`Defining function: ${functionName}`);
+                    continue;
+                }
+
+                // Check for function block end using }
+                if (line.includes("}")) {
+                    // End of function block
+                    continue;
+                }
+
+                // Parse other commands
+                var tokens = line.split(" ");
                 var command = tokens[0];
 
                 if (command === "s01") {
@@ -39,43 +57,16 @@
                     if (variables.hasOwnProperty(variableName)) {
                         output.push(String.fromCharCode(variables[variableName] + 96));
                     } else {
-                        output.push('&'); // Placeholder for undefined variable
+                        output.push('Undefined variable: ' + variableName);
                     }
-                } else if (command === "fnc") {
-                    // Function declaration: fnc functionName
-                    var functionName = tokens[1];
-                    // Implement function logic here if needed
                 } else {
-                    // Invalid command or unrecognized syntax
+                    // Invalid command
                     output.push('Invalid command: ' + line);
                 }
-            });
+            }
 
-            // Display all interpreted lines
+            // Display all interpreted output
             document.getElementById("output").innerText = output.join("\n");
-        }
-
-        function downloadFile() {
-            var content = document.getElementById("input").value;
-            var blob = new Blob([content], { type: 'application/octet-stream' });
-            var url = URL.createObjectURL(blob);
-            var a = document.createElement('a');
-            a.href = url;
-            a.download = 'smallprog.spi'; // Specify the filename with .spi extension
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-
-        function loadFile(event) {
-            var file = event.target.files[0];
-            if (!file) return;
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                var contents = e.target.result;
-                document.getElementById('input').value = contents;
-            };
-            reader.readAsText(file);
         }
     </script>
 </body>
